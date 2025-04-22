@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: employee-db
+    spec:
+      containers:
+        - env:
+            - name: MYSQL_PASSWORD
+              value: user
+            - name: MYSQL_USER
+              value: user
+            - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+              value: com.mysql.cj.jdbc.Driver
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: user
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://employee-db:3306/EMPLOYEE_DB
+            - name: SPRING_DATASOURCE_USERNAME
+              value: user
+            - name: SPRING_JPA_DATABASE_PLATFORM
+              value: org.hibernate.dialect.MySQLDialect
+          image: galenml/coding-challenge-employee-db:latest
+          name: employee-db
+          ports:
+            - containerPort: 3306
+          resources: {}
+      restartPolicy: Always

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee-service
+  template:
+    metadata:
+      labels:
+        app: employee-service
+    spec:
+      containers:
+        - image: galenml/coding-challenge-employee-service:latest
+          name: employee-service
+          env:
+            - name: spring.datasource.url
+              value: jdbc:mysql://employee-db:3306/EMPLOYEE_DB
+            - name: eureka.client.service-url.defaultZone
+              value: http://discovery-service:8761/eureka
+            - name: eureka.client.register-with-eureka
+              value: "true"
+            - name: eureka.client.prefer-ip-address
+              value: "true"
+            - name: eureka.client.fetch-registry
+              value: "true"
+            - name: eureka.instance.hostName
+              value: employee-service
+          ports:
+            - containerPort: 8082
+          resources: {}
+      restartPolicy: Always

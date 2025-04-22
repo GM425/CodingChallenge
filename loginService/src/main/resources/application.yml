@@ -1,0 +1,25 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: login-service
+  datasource:
+    url: jdbc:mysql://login-db:3307/LOGIN_DB
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: user
+    password: user
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/
+    healthcheck:
+      enabled: true
+  instance:
+    health-check-url: /health

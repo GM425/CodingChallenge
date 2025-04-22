@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-service
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+        - name: gateway-service
+          image: galenml/coding-challenge-gateway-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: jwt.secret
+              valueFrom:
+                secretKeyRef:
+                  name: galen-credentials
+                  key: JWT_SECRET
+            - name: eureka.client.service-url.defaultZone
+              value: http://discovery-service:8761/eureka
+            - name: eureka.client.register-with-eureka
+              value: "true"
+            - name: eureka.client.prefer-ip-address
+              value: "true"
+            - name: eureka.client.fetch-registry
+              value: "true"
+            - name: eureka.instance.hostName
+              value: gateway-service
+      restartPolicy: Always

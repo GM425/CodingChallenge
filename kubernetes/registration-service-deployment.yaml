@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registration-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registration-service
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: registration-service
+    spec:
+      containers:
+        - image: galenml/coding-challenge-registration-service:latest
+          name: registration-service
+          env:
+            - name: spring.datasource.url
+              value: jdbc:mysql://registration-db:8090/REGISTRATION_DB
+            - name: spring.kafka.producer.bootstrap-servers
+              value: kafka:9092
+            - name: eureka.client.service-url.defaultZone
+            # Here I had to add environment variables that made the service discoverable by the eureka server. This is one of the things I had to change and debug for Kubernetes to work.
+              value: http://discovery-service:8761/eureka
+            - name: eureka.client.register-with-eureka
+              value: "true"
+            - name: eureka.client.prefer-ip-address
+              value: "true"
+            - name: eureka.client.fetch-registry
+              value: "true"
+            # Here I had to change the value of the name below to the name associated with the service in config files so that it could be discovered. This is one of the things I had to edit and debug for Kubernetes to work.
+            - name: eureka.instance.hostName
+              value: registration-service
+          ports:
+            - containerPort: 8088
+          resources: {}
+      restartPolicy: Always

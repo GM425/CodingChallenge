@@ -1,0 +1,40 @@
+server:
+  port: 8080
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: employee-service
+          uri: lb://employee-service
+          predicates:
+            - Path=/employee/**
+          filters:
+            - GatewayFilterSetup
+
+        - id: login-service
+          uri: lb://login-service
+          predicates:
+            - Path=/login/**
+          filters:
+            - GatewayFilterSetup
+
+        - id: registration-service
+          uri: lb://registration-service
+          predicates:
+            - Path=/registration/**
+          filters:
+            - GatewayFilterSetup
+
+  application:
+    name: gateway-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    healthcheck:
+      enabled: true
+  instance:
+    health-check-url: /health

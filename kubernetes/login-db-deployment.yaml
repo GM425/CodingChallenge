@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: login-db
+  template:
+    metadata:
+      labels:
+        app: login-db
+    spec:
+      containers:
+        - image: galenml/coding-challenge-login-db:latest
+          name: login-db
+          env:
+            - name: MYSQL_PASSWORD
+              value: user
+            - name: MYSQL_USER
+              value: user
+          ports:
+            - containerPort: 3307
+      restartPolicy: Always
+status: {}

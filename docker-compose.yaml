@@ -1,0 +1,194 @@
+version: '3.8'
+services:
+  registration-service:
+    container_name: registration-service
+    build:
+      context: ./registrationService
+      dockerfile: Dockerfile
+    depends_on:
+      - registration-db
+    ports:
+      - "8088:8088"
+    #environment:
+    #   SPRING_DATASOURCE_URL: jdbc:mysql://employee-db:3306/EMPLOYEE_DB
+      # ?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      # SPRING_DATA_MYSQL_HOST: employee-db
+      # SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      # SPRING_DATASOURCE_USERNAME: user
+      # SPRING_DATASOURCE_PASSWORD: user
+      # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+    networks:
+      - backend
+
+  registration-db:
+    container_name: registration-db
+    build:
+      context: ./registrationDB
+      dockerfile: Dockerfile
+    #volumes:
+     # - registration_data:/var/lib/mysql
+        # - type:bind
+        # - ./employeeDB/docker-entrypoint-initdb.d:
+        #environment values only need to be added if you want to override a default value or what is already defined in my app ex. application.properties file
+    ports:
+      - 8090:8090
+    environment:
+      
+      # ?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      # SPRING_DATA_MYSQL_HOST: employee-db
+      # SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      # SPRING_DATASOURCE_USERNAME: user
+      # SPRING_DATASOURCE_PASSWORD: user
+      # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+    networks:
+      - backend
+      
+  employee-service:
+    container_name: employee-service
+    build:
+      context: ./employeeService
+      dockerfile: Dockerfile
+    depends_on:
+      - employee-db
+    ports:
+      - "8082:8082"
+    # environment:
+    #   SPRING_DATASOURCE_URL: jdbc:mysql://employee-db:3306/EMPLOYEE_DB
+      # ?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      # SPRING_DATA_MYSQL_HOST: employee-db
+      # SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      # SPRING_DATASOURCE_USERNAME: user
+      # SPRING_DATASOURCE_PASSWORD: user
+      # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+    networks:
+      - backend
+
+  employee-db:
+    container_name: employee-db
+    build:
+      context: ./employeeDB
+      dockerfile: Dockerfile
+    volumes:
+      - employee_data:/var/lib/mysql
+        # - type:bind
+        # - ./employeeDB/docker-entrypoint-initdb.d:
+        #environment values only need to be added if you want to override a default value or what is already defined in my app ex. application.properties file
+    ports:
+      - 3306:3306
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://employee-db:3306/EMPLOYEE_DB
+      # ?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      # SPRING_DATA_MYSQL_HOST: employee-db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_DATASOURCE_PASSWORD: user
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+    networks:
+      - backend
+
+  discovery-service:
+    container_name: discovery-service
+    build:
+      context: ./discoveryService
+      dockerfile: Dockerfile
+    restart: on-failure
+    environment:
+      - eureka.client.fetch-registry=false
+      - eureka.client.register-with-eureka=false
+    ports:
+      - "8761:8761"
+    networks:
+      - backend
+  
+
+  login-service:
+    container_name: login-service
+    build: 
+      context: ./loginService
+      dockerfile: Dockerfile
+    depends_on:
+      - login-db
+    ports:
+      - "8083:8083"
+    networks:
+      - backend
+    env_file:
+      - .env
+    environment:
+      - jwt.secret=${JWT_SECRET}
+
+
+  login-db:
+    container_name: login-db
+    build:
+      context: ./loginDB
+      dockerfile: Dockerfile
+    volumes:
+      - login_data:/var/lib/mysql
+    ports:
+      - "3307:3307"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://login-db:3307/LOGIN_DB
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: user
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+    networks:
+      - backend
+
+  gateway-service:
+    container_name: gateway-service
+    build:
+      context: ./gatewayService
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - login-service
+      - employee-service
+      - discovery-service
+    networks:
+      - backend
+    env_file:
+      - .env
+    environment:
+      - jwt.secret=${JWT_SECRET}
+      
+
+  zookeeper:
+    container_name: ZOOKEEPER_BROKER
+    image: 'confluentinc/cp-zookeeper:latest'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - backend
+
+  kafka:
+    container_name: KAFKA_BROKER
+    image: 'confluentinc/cp-kafka:latest'
+    depends_on:
+    - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+    - '9092:9092'
+    networks:
+    - backend
+
+volumes:
+  employee_data:
+  login_data:
+  registration_data:
+
+networks:
+  backend:

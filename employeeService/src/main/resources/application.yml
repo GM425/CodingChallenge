@@ -1,0 +1,33 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: employee-service
+  datasource:
+    url: jdbc:mysql://employee-db:3306/EMPLOYEE_DB
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: user
+    password: user
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  kafka:
+    consumer:
+      bootstrap-servers: kafka:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      group-id: employee-group
+      fetch-max-wait: 500
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/
+    healthcheck:
+      enabled: true
+  instance:
+    health-check-url: /health

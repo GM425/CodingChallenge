@@ -1,0 +1,35 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: registration-service
+  datasource:
+    url: jdbc:mysql://registration-db:8090/REGISTRATION_DB
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: user
+    password: user
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  kafka:
+    producer:
+      bootstrap-servers: kafka:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 3
+      batch-size: # Add the desired value here
+      buffer-memory: # Add the desired value here
+
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/
+    healthcheck:
+      enabled: true
+  instance:
+    health-check-url: /health

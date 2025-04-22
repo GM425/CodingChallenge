@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registration-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registration-db
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: registration-db
+    spec:
+      containers:
+        - env:
+            - name: MYSQL_PASSWORD
+              value: user
+            - name: MYSQL_USER
+              value: user
+          image: galenml/coding-challenge-registration-db:latest
+          name: registration-db
+          ports:
+            - containerPort: 8090
+          resources: {}
+      restartPolicy: Always
